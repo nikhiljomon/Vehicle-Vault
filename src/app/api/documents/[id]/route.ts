@@ -22,6 +22,7 @@ const documentUpdateSchema = z
     documentNumber: z.string().optional().nullable(),
     issueDate: z.string().optional().nullable(),
     expiryDate: z.string().min(1, "Expiry date is required").optional(),
+    premium: z.union([z.number(), z.string()]).optional().nullable(),
     notes: z.string().optional().nullable(),
     fileUrl: z.string().optional().nullable(),
     fileName: z.string().optional().nullable(),
@@ -122,7 +123,26 @@ export async function PUT(
       fileName,
       fileSize,
       metadata,
+      premium,
     } = parsed.data;
+
+    let premiumVal: number | null | undefined = undefined;
+    if (premium !== undefined) {
+      if (premium === null || premium === "") {
+        premiumVal = null;
+      } else {
+        const num = Number(premium);
+        if (!isNaN(num)) premiumVal = num;
+      }
+    } else if (metadata !== undefined) {
+      try {
+        const m = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+        if (m && m.premium !== undefined) {
+          const num = Number(m.premium);
+          if (!isNaN(num)) premiumVal = num;
+        }
+      } catch {}
+    }
 
     const updated = await prisma.document.update({
       where: { id: params.id },
@@ -132,6 +152,7 @@ export async function PUT(
         ...(documentNumber !== undefined ? { documentNumber: documentNumber?.trim() || null } : {}),
         ...(issueDate !== undefined ? { issueDate: issueDate ? new Date(issueDate) : null } : {}),
         ...(expiryDate ? { expiryDate: new Date(expiryDate) } : {}),
+        ...(premiumVal !== undefined ? { premium: premiumVal } : {}),
         ...(notes !== undefined ? { notes } : {}),
         ...(fileUrl !== undefined ? { fileUrl } : {}),
         ...(fileName !== undefined ? { fileName } : {}),

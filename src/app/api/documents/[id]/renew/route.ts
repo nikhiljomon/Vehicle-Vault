@@ -9,6 +9,7 @@ const renewSchema = z
     expiryDate: z.string().min(1, "New expiry date is required"),
     issueDate: z.string().optional().nullable(),
     documentNumber: z.string().optional().nullable(),
+    premium: z.union([z.number(), z.string()]).optional().nullable(),
     notes: z.string().optional().nullable(),
     fileUrl: z.string().optional().nullable(),
     fileName: z.string().optional().nullable(),
@@ -71,7 +72,26 @@ export async function POST(
       fileName,
       fileSize,
       metadata,
+      premium,
     } = parsed.data;
+
+    let newPremium: number | null | undefined = undefined;
+    if (premium !== undefined) {
+      if (premium === null || premium === "") {
+        newPremium = null;
+      } else {
+        const num = Number(premium);
+        if (!isNaN(num)) newPremium = num;
+      }
+    } else if (metadata !== undefined) {
+      try {
+        const m = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+        if (m && m.premium !== undefined) {
+          const num = Number(m.premium);
+          if (!isNaN(num)) newPremium = num;
+        }
+      } catch {}
+    }
 
     // Run transaction: Archive old record in DocumentHistory + Update Document + Reset ReminderLogs
     const result = await prisma.$transaction(async (tx) => {
@@ -82,6 +102,7 @@ export async function POST(
           documentNumber: existing.documentNumber,
           issueDate: existing.issueDate,
           expiryDate: existing.expiryDate,
+          premium: existing.premium,
           fileUrl: existing.fileUrl,
           fileName: existing.fileName,
           notes: existing.notes,
@@ -102,6 +123,7 @@ export async function POST(
           expiryDate: new Date(expiryDate),
           issueDate: issueDate ? new Date(issueDate) : existing.issueDate,
           documentNumber: documentNumber !== undefined ? (documentNumber?.trim() || null) : existing.documentNumber,
+          ...(newPremium !== undefined ? { premium: newPremium } : {}),
           notes: notes !== undefined ? notes : existing.notes,
           fileUrl: fileUrl !== undefined ? fileUrl : existing.fileUrl,
           fileName: fileName !== undefined ? fileName : existing.fileName,

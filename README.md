@@ -4,6 +4,7 @@ A full-stack, mobile-responsive web application designed to store all vehicle de
 
 ![Next.js](https://img.shields.io/badge/Next.js-14_App_Router-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)
 ![Prisma](https://img.shields.io/badge/Prisma-5.22-teal)
 ![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-Mobile_First-38bdf8)
 ![PWA](https://img.shields.io/badge/PWA-Ready-purple)
@@ -15,7 +16,7 @@ A full-stack, mobile-responsive web application designed to store all vehicle de
 - **🔐 Authentication & Multi-Tenancy**: Email + password login via NextAuth.js (bcrypt password hashing). Every user strictly accesses only their own vehicles and documents.
 - **🚘 Vehicle Management**: Add, edit, and delete vehicles with nickname, registration plate, make, model, year, fuel type, owner name, chassis/VIN, engine number, and photos.
 - **📄 Document Tracking**: Track Insurance, PUC (Pollution Certificate), RC, Fitness Certificate, Road Tax, Permits, Driving Licences, and Custom Document types.
-- **⚡ Quick "Renew" Action**: Instantly update policies with new dates and file attachments while preserving the entire renewal history timeline.
+- **⚡ Quick "Renew" Action**: Instantly update policies with new dates, premium amounts, and file attachments while preserving the entire renewal history timeline.
 - **⏰ Proactive Reminder Engine**: 
   - Automated alerts delivered via **Email** (Nodemailer), **In-App Notification Bell** (with unread counters), and **Browser/PWA Push Notifications**.
   - Configurable reminder windows per user (default: 30, 15, 7, 1 days before expiry, and on the expiry day).
@@ -33,7 +34,7 @@ A full-stack, mobile-responsive web application designed to store all vehicle de
 
 - **Framework**: Next.js 14 (App Router) + TypeScript
 - **Styling**: Tailwind CSS + Lucide Icons + `next-themes` (Dark/Light mode)
-- **Database & ORM**: Prisma ORM with SQLite for zero-config local development (`dev.db`)
+- **Database & ORM**: PostgreSQL 16 + Prisma ORM (with native PostgreSQL types, enums, and indexes)
 - **Authentication**: NextAuth.js with Credentials Provider & JWT sessions
 - **Validation**: Server and client Zod validation schemas
 - **Email Delivery**: Nodemailer (customizable SMTP via `.env`)
@@ -45,8 +46,9 @@ A full-stack, mobile-responsive web application designed to store all vehicle de
 ## 🚀 Quick Start Guide
 
 ### 1. Prerequisites
-- **Node.js**: v18+ or v20+ or v24+
+- **Node.js**: v18+, v20+, or v24+
 - **npm** (or pnpm / yarn)
+- **Docker & Docker Compose** (for local PostgreSQL 16 container) OR an existing PostgreSQL 16 database (local or hosted)
 
 ### 2. Installation
 Clone the repository and install dependencies:
@@ -56,41 +58,74 @@ cd vehicle
 npm install
 ```
 
-### 3. Environment Variables
+### 3. Start PostgreSQL Database
+You can spin up a local PostgreSQL 16 container with persistent storage using the included `docker-compose.yml`:
+```bash
+docker compose up -d
+```
+*(Alternatively, you can use an existing local PostgreSQL instance or a hosted database such as Supabase, Neon, or Railway).*
+
+### 4. Configure Environment Variables
 Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
-Default `.env` configuration for local development:
-```env
-DATABASE_URL="file:./dev.db"
-NEXTAUTH_SECRET="vehiclevault-local-dev-secret-key-32chars"
-NEXTAUTH_URL="http://localhost:3000"
-CRON_SECRET="vehiclevault-cron-secret-token"
+Ensure `DATABASE_URL` is configured for your PostgreSQL database:
 
-# Optional SMTP settings for live email sending:
-SMTP_HOST="localhost"
-SMTP_PORT="1025"
-SMTP_SECURE="false"
-SMTP_USER=""
-SMTP_PASS=""
-SMTP_FROM="VehicleVault <no-reply@vehiclevault.local>"
-```
-*(If SMTP is not configured, email reminders are safely simulated and logged to the console without crashing).*
+- **Local Docker Compose**:
+  ```env
+  DATABASE_URL="postgresql://postgres:postgres@localhost:5432/vehiclevault?schema=public"
+  ```
+- **Hosted Supabase** (Transaction pooler on port 6543 for serverless / Vercel):
+  ```env
+  DATABASE_URL="postgresql://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?schema=public&sslmode=require"
+  ```
+- **Hosted Neon / Railway**:
+  ```env
+  DATABASE_URL="postgresql://[USER]:[PASSWORD]@[HOST]:[PORT]/vehiclevault?sslmode=require"
+  ```
 
-### 4. Database Setup & Seed
-Push the database schema and populate with rich test data (includes valid, expiring-soon, and expired documents):
+### 5. Run Database Migrations
+Apply the initial PostgreSQL migrations to create the database schema:
 ```bash
-npx prisma db push
+npx prisma migrate dev
+```
+
+### 6. Seed Demo Data
+Populate the database with sample vehicles, documents (expired, expiring soon, and valid), and renewal histories:
+```bash
+npx prisma db seed
+# or
 npm run seed
 ```
 
-### 5. Run the Application
+### 7. Run the Application
 Start the Next.js development server:
 ```bash
 npm run dev
 ```
 Open your browser at [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 🚢 Production Deployment
+
+When deploying to production environments (e.g., Vercel, Railway, Docker, or AWS):
+
+1. **Set Environment Variables**: In your production environment settings, set `DATABASE_URL` (with `?sslmode=require`), `NEXTAUTH_SECRET`, and `NEXTAUTH_URL`.
+2. **Apply Migrations**:
+   ```bash
+   npx prisma migrate deploy
+   ```
+   `prisma migrate deploy` applies all pending migrations safely without dropping data or requiring interactive prompts.
+3. **Build the Application**:
+   ```bash
+   npm run build
+   ```
+4. **Start the Production Server**:
+   ```bash
+   npm start
+   ```
 
 ---
 
@@ -136,38 +171,26 @@ npm run cron
 
 ## 🗄️ Database Architecture
 
-The SQLite database schema is defined in `prisma/schema.prisma`:
+The PostgreSQL schema is defined in `prisma/schema.prisma` with native types and enums:
 
-- `User`: Accounts and authentication.
-- `Vehicle`: Nickname, plate, type, make, model, year, fuel type, chassis/engine numbers, owner.
-- `Document`: Type, document number, issue date, expiry date, notes, file attachment, metadata.
-- `DocumentHistory`: Immutable timeline audit trail generated upon document renewals.
-- `NotificationSetting`: User-specific alert thresholds (e.g. `30, 15, 7, 1, 0`) and enabled channels.
-- `ReminderLog`: Deduplication tracking preventing repeated alerts for the same window.
-- `Notification`: In-app notification records for the bell dropdown.
-- `PushSubscription`: Browser push subscription endpoints and VAPID keys.
-
-### Switching to PostgreSQL for Production
-To migrate from SQLite to PostgreSQL (e.g., Supabase, Neon, Railway):
-1. In `prisma/schema.prisma`, update the datasource:
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
-   ```
-2. Update `DATABASE_URL` in `.env` to your Postgres connection string.
-3. Run `npx prisma db push` (or `npx prisma migrate dev`).
-
----
-
-## 📦 Production Build Verification
-
-To create an optimized production build:
-```bash
-npm run build
-npm start
-```
+- **Enums**:
+  - `VehicleType`: `CAR`, `BIKE`, `TRUCK`, `SCOOTER`, `OTHER`
+  - `FuelType`: `PETROL`, `DIESEL`, `ELECTRIC`, `HYBRID`, `CNG`, `OTHER`
+  - `DocumentType`: `INSURANCE`, `PUC`, `RC`, `FITNESS`, `ROAD_TAX`, `PERMIT`, `DRIVING_LICENCE`, `CUSTOM`
+  - `ReminderChannel`: `EMAIL`, `IN_APP`, `PUSH`
+  - `ReminderStatus`: `SENT`, `FAILED`
+- **Native Types**:
+  - `Document.issueDate` / `expiryDate`: `@db.Date` (precise calendar date storage)
+  - `Document.premium`: `@db.Decimal(10, 2)` (financial precision for policy costs)
+  - `Document.notes`, `metadata`, `Notification.message`: `@db.Text` (unbounded text storage)
+- **Indexes**:
+  - `Document.expiryDate` & `Document.vehicleId`
+  - `Vehicle.userId`
+  - `ReminderLog.documentId` & compound unique `[documentId, daysBeforeExpiry, channel]`
+  - `Notification.userId` & `PushSubscription.userId`
+- **Cascade Deletes**:
+  - Deleting a user deletes vehicles, notifications, notification settings, and push subscriptions.
+  - Deleting a vehicle deletes all associated documents, document histories, and reminder logs.
 
 ---
 

@@ -50,6 +50,7 @@ export interface DocumentItem {
   documentNumber?: string | null;
   issueDate?: Date | string | null;
   expiryDate: Date | string;
+  premium?: number | string | null;
   notes?: string | null;
   fileUrl?: string | null;
   fileName?: string | null;
@@ -73,6 +74,7 @@ export interface DocumentHistoryItem {
   documentNumber?: string | null;
   issueDate?: Date | string | null;
   expiryDate: Date | string;
+  premium?: number | string | null;
   fileUrl?: string | null;
   fileName?: string | null;
   notes?: string | null;

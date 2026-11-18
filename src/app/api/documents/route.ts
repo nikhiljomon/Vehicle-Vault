@@ -24,6 +24,7 @@ const documentCreateSchema = z
     documentNumber: z.string().optional().nullable(),
     issueDate: z.string().optional().nullable(),
     expiryDate: z.string().min(1, "Expiry date is required"),
+    premium: z.union([z.number(), z.string()]).optional().nullable(),
     notes: z.string().optional().nullable(),
     fileUrl: z.string().optional().nullable(),
     fileName: z.string().optional().nullable(),
@@ -65,7 +66,7 @@ export async function GET(req: Request) {
           userId,
           ...(vehicleId ? { id: vehicleId } : {}),
         },
-        ...(type && type !== "ALL" ? { type } : {}),
+        ...(type && type !== "ALL" ? { type: type as any } : {}),
       },
       include: {
         vehicle: {
@@ -158,6 +159,20 @@ export async function POST(req: Request) {
       );
     }
 
+    let premiumVal: number | null = null;
+    if (parsed.data.premium !== undefined && parsed.data.premium !== null && parsed.data.premium !== "") {
+      const num = Number(parsed.data.premium);
+      if (!isNaN(num)) premiumVal = num;
+    } else if (metadata) {
+      try {
+        const m = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+        if (m.premium !== undefined && m.premium !== null && m.premium !== "") {
+          const num = Number(m.premium);
+          if (!isNaN(num)) premiumVal = num;
+        }
+      } catch {}
+    }
+
     const newDoc = await prisma.document.create({
       data: {
         vehicleId,
@@ -166,6 +181,7 @@ export async function POST(req: Request) {
         documentNumber: documentNumber ? documentNumber.trim() : null,
         issueDate: issueDate ? new Date(issueDate) : null,
         expiryDate: new Date(expiryDate),
+        premium: premiumVal,
         notes: notes || null,
         fileUrl: fileUrl || null,
         fileName: fileName || null,

@@ -67,6 +67,7 @@ async function main() {
             documentNumber: "POL-ICICI-883921",
             issueDate: offsetDays(-351),
             expiryDate: offsetDays(14), // Expiring in 14 days (yellow)
+            premium: 18450,
             notes: "Zero depreciation comprehensive cover with engine protect add-on",
             metadata: JSON.stringify({
               provider: "ICICI Lombard",
@@ -80,6 +81,7 @@ async function main() {
                   documentNumber: "POL-ICICI-772109",
                   issueDate: offsetDays(-716),
                   expiryDate: offsetDays(-351),
+                  premium: 17200,
                   notes: "Previous year policy. Renewed on time.",
                   metadata: JSON.stringify({ provider: "ICICI Lombard", premium: 17200 }),
                 },
@@ -137,6 +139,7 @@ async function main() {
             documentNumber: "HDFC-ERGO-MOTO-4491",
             issueDate: offsetDays(-300),
             expiryDate: offsetDays(65), // Valid (green)
+            premium: 3200,
             notes: "Third party + own damage cover",
             metadata: JSON.stringify({
               provider: "HDFC ERGO",
@@ -177,6 +180,7 @@ async function main() {
             documentNumber: "TATA-AIG-EV-10293",
             issueDate: offsetDays(-364),
             expiryDate: offsetDays(1), // Expiring tomorrow (red/amber urgent alert)
+            premium: 24500,
             notes: "Zero dep, battery shield, return to invoice",
             metadata: JSON.stringify({
               provider: "Tata AIG",

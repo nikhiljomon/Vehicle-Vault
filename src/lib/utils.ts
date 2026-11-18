@@ -8,12 +8,24 @@ export function getDaysRemaining(expiryDate: Date | string): number {
   const expiry = new Date(expiryDate);
   const now = new Date();
 
-  // Reset hours to start of day for accurate comparison
-  expiry.setHours(0, 0, 0, 0);
-  now.setHours(0, 0, 0, 0);
+  // Extract calendar date parts in UTC to prevent timezone shifts across UTC midnight
+  let expYear: number, expMonth: number, expDay: number;
+  if (typeof expiryDate === "string" && /^\d{4}-\d{2}-\d{2}/.test(expiryDate)) {
+    const parts = expiryDate.slice(0, 10).split("-").map(Number);
+    expYear = parts[0];
+    expMonth = parts[1] - 1;
+    expDay = parts[2];
+  } else {
+    expYear = expiry.getUTCFullYear();
+    expMonth = expiry.getUTCMonth();
+    expDay = expiry.getUTCDate();
+  }
 
-  const diffMs = expiry.getTime() - now.getTime();
-  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  const utcExpiry = Date.UTC(expYear, expMonth, expDay);
+  const utcNow = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const diffMs = utcExpiry - utcNow;
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
 }
 
 export function calculateExpiryStatus(expiryDate: Date | string): {
@@ -64,10 +76,14 @@ export function formatDate(date: Date | string | null | undefined): string {
   if (!date) return "N/A";
   const d = new Date(date);
   if (isNaN(d.getTime())) return "Invalid date";
+
+  // If time is at UTC midnight (typical for PostgreSQL @db.Date), format using UTC to avoid timezone shift
+  const isUtcMidnight = d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0;
   return d.toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
+    ...(isUtcMidnight ? { timeZone: "UTC" } : {}),
   });
 }
 
