@@ -327,7 +327,7 @@ export default function SettingsPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-slate-400">No new alerts required for today's criteria (already notified or not in window).</div>
+              <div className="text-slate-400">No new alerts required for today&apos;s criteria (already notified or not in window).</div>
             )}
           </div>
         )}

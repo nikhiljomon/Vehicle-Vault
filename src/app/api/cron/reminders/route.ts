@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { runReminderCheck } from "@/lib/reminders";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   return handleCronTrigger(req);
 }

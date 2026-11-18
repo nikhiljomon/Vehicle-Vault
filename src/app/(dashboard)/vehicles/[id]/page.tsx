@@ -308,7 +308,7 @@ export default function VehicleDetailPage() {
 
                     {doc.notes && (
                       <p className="text-xs text-slate-600 dark:text-slate-400 italic">
-                        "{doc.notes}"
+                        &ldquo;{doc.notes}&rdquo;
                       </p>
                     )}
                   </div>
@@ -379,7 +379,7 @@ export default function VehicleDetailPage() {
 
         {allHistory.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-400">
-            No past renewals yet. When you use the "Renew" action on any document, previous records will automatically appear here.
+            No past renewals yet. When you use the &ldquo;Renew&rdquo; action on any document, previous records will automatically appear here.
           </div>
         ) : (
           <div className="mt-6 relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
@@ -412,7 +412,7 @@ export default function VehicleDetailPage() {
 
                   {item.notes && (
                     <p className="mt-2 text-xs text-slate-500 italic">
-                      "{item.notes}"
+                      &ldquo;{item.notes}&rdquo;
                     </p>
                   )}
 

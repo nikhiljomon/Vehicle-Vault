@@ -5,6 +5,8 @@ import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
 
+export const dynamic = "force-dynamic";
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = [
   "application/pdf",
