@@ -27,6 +27,17 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+
+# sqlite database
+*.db
+*.db-journal
+prisma/*.db
+prisma/*.db-journal
+
+# user uploads
+public/uploads/*
+!public/uploads/.gitkeep
 
 # vercel
 .vercel

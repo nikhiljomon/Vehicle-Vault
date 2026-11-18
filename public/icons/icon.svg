@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Rect -->
+  <rect width="512" height="512" rx="128" fill="url(#blueGrad)"/>
+  <!-- Shield Icon -->
+  <path d="M256 80 C340 80, 400 120, 400 120 V250 C400 345, 335 410, 256 440 C177 410, 112 345, 112 250 V120 C112 120, 172 80, 256 80 Z" fill="#ffffff" opacity="0.95"/>
+  <!-- Car Silhouette inside Shield -->
+  <path d="M190 280 L210 215 C215 205, 225 200, 235 200 H277 C287 200, 297 205, 302 215 L322 280 H335 C343 280, 350 287, 350 295 V325 C350 330, 345 335, 340 335 H335 V355 C335 360, 330 365, 325 365 H310 C305 365, 300 360, 300 355 V335 H212 V355 C212 360, 207 365, 202 365 H187 C182 365, 177 360, 177 355 V335 H172 C167 335, 162 330, 162 325 V295 C162 287, 169 280, 177 280 H190 Z M220 280 H292 L280 230 H232 L220 280 Z" fill="#1d4ed8"/>
+  <!-- Checkmark -->
+  <circle cx="330" cy="180" r="36" fill="#10b981"/>
+  <path d="M318 180 L326 188 L344 170" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
